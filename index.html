@@ -1,0 +1,101 @@
+[23/09/2026 02:18 ص] يا حسين: <!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل الدورات التدريبية - الجيش العراقي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:'Tajawal',system-ui}
+body{margin:0;background:#f1f5f9;color:#0f172a}
+header{background:#1e293b;color:#fff;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+header h1{margin:0;font-size:20px;font-weight:800}
+.btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-green{background:#16a34a;color:#fff}
+.btn-red{background:#ef4444;color:#fff}
+.wrap{max-width:1300px;margin:0 auto;padding:16px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:1000px}
+th{background:#f8fafc;padding:12px 10px;font-size:13px;border-bottom:1px solid #e2e8f0;white-space:nowrap;text-align:center}
+td{padding:6px;border-bottom:1px solid #f1f5f9;text-align:center}
+input[type="text"]{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px}
+input[type="date"]{width:100%;padding:7px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;direction:ltr;text-align:center}
+.date-lbl{font-size:10px;color:#64748b;display:block;margin-bottom:2px}
+.badge{font-size:11px;padding:2px 6px;border-radius:99px;background:#f1f5f9}
+</style>
+</head>
+<body>
+<header>
+<h1>🪖 سجل الدورات التدريبية - 16 استاذ</h1>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn btn-green" onclick="addRow()">+ اضافة صف</button>
+<button class="btn btn-dark" onclick="exportCSV()">تصدير Excel</button>
+<button class="btn btn-red" onclick="clearAll()">مسح الكل</button>
+<button class="btn btn-dark" onclick="downloadSelf()">⬇️ تحميل الملف مستقل</button>
+</div>
+</header>
+<div class="wrap">
+<div class="card">
+<div class="table-wrap">
+<table id="tbl">
+<thead>
+<tr>
+<th>ت</th>
+<th>اسم الاستاذ</th>
+<th>تاريخ الالتحاق<br><span class="date-lbl">سنة - شهر - يوم</span></th>
+<th>تاريخ النزول<br><span class="date-lbl">سنة - شهر - يوم</span></th>
+<th>مكان الالتحاق</th>
+<th>اسم الدورة</th>
+<th>نوع الدورة</th>
+<th>ملاحظات</th>
+<th>حذف</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<script>
+const KEY='dawrat_jaysh_final_v3';
+let rows = JSON.parse(localStorage.getItem(KEY) || 'null');
+if(!rows){rows = Array.from({length:16},(_,i)=>({id:Date.now()+i,name:'',join:'',leave:'',place:'',course:'',type:'',note:''}))}
+function save(){localStorage.setItem(KEY, JSON.stringify(rows))}
+function render(){
+const tb=document.getElementById('tbody');tb.innerHTML='';
+rows.forEach((r,idx)=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`
+<td><span class="badge">${idx+1}</span></td>
+<td><input type="text" value="${r.name}" placeholder="الاسم" oninput="rows[${idx}].name=this.value;save()"></td>
+<td><input type="date" dir="ltr" lang="en" value="${r.join}" style="direction:ltr" onchange="rows[${idx}].join=this.value;save()"></td>
+<td><input type="date" dir="ltr" lang="en" value="${r.leave}" style="direction:ltr" onchange="rows[${idx}].leave=this.value;save()"></td>
+<td><input type="text" value="${r.place}" placeholder="اكتب المكان" oninput="rows[${idx}].place=this.value;save()"></td>
+<td><input type="text" value="${r.course}" placeholder="اسم الدورة" oninput="rows[${idx}].course=this.value;save()"></td>
+<td><input type="text" value="${r.type}" placeholder="نوع الدورة" oninput="rows[${idx}].type=this.value;save()"></td>
+<td><input type="text" value="${r.note}" placeholder="ملاحظات" oninput="rows[${idx}].note=this.value;save()"></td>
+[23/09/2026 02:18 ص] يا حسين: <td><button onclick="del(${idx})" style="border:none;background:#fee2e2;color:#991b1b;border-radius:8px;padding:6px 10px;cursor:pointer">✕</button></td>
+;
+tb.appendChild(tr);
+})
+}
+function addRow(){rows.push({id:Date.now(),name:'',join:'',leave:'',place:'',course:'',type:'',note:''});save();render()}
+function del(i){if(confirm('تحذف هذا الصف؟')){rows.splice(i,1);save();render()}}
+function clearAll(){if(confirm('تمسح كل البيانات؟')){rows=Array.from({length:16},(_,i)=>({id:Date.now()+i,name:'',join:'',leave:'',place:'',course:'',type:'',note:''}));save();render()}}
+function exportCSV(){
+let csv='ت,اسم الاستاذ,تاريخ الالتحاق,تاريخ النزول,مكان الالتحاق,اسم الدورة,نوع الدورة,ملاحظات\n';
+rows.forEach((r,i)=>{csv+=${i+1},"${r.name}","${r.join}","${r.leave}","${r.place}","${r.course}","${r.type}","${r.note}"\n`});
+const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='سجل-الدورات-الجيش.csv';a.click()
+}
+function downloadSelf(){
+const content=document.documentElement.outerHTML;
+const blob=new Blob([content],{type:'text/html;charset=utf-8;'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download='index.html';a.click();
+}
+render();
+</script>
+</body>
+</html>
