@@ -1,0 +1,202 @@
+ <!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل الدورات - 16 استاذ متعدد الدورات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:'Tajawal',system-ui}
+body{margin:0;background:#f1f5f9;color:#0f172a}
+header{background:#1e293b;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:20}
+h1{margin:0;font-size:14px;font-weight:800}
+.btn{border:none;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12px}
+.btn-green{background:#16a34a;color:#fff}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-red{background:#ef4444;color:#fff}
+.btn-blue{background:#0ea5e9;color:#fff}
+.wrap{max-width:1500px;margin:0 auto;padding:12px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px}
+.teacher-head{background:#f8fafc;padding:10px 12px;display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr 90px;gap:8px;align-items:end;border-bottom:1px solid #e2e8f0}
+@media(max-width:900px){.teacher-head{grid-template-columns:1fr 1fr}}
+.badge{background:#0f172a;color:#fff;width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+input{width:100%;padding:7px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px}
+input[type="date"]{direction:ltr;text-align:center}
+.courses{padding:10px}
+.course-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 50px;gap:6px;margin-bottom:8px;align-items:end;background:#fffbeb;border:1px dashed #f59e0b;border-radius:8px;padding:8px}
+.lbl{font-size:10px;color:#64748b;font-weight:700;margin-bottom:2px}
+.count-pill{background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:800;display:inline-block}
+</style>
+</head>
+<body>
+<header>
+<h1>سجل الدورات - 16 استاذ - كل استاذ متعدد الدورات</h1>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button class="btn btn-green" id="addTeacherBtn">اضافة استاذ</button>
+<button class="btn btn-dark" id="exportBtn">تصدير Excel</button>
+<button class="btn btn-red" id="clearBtn">مسح الكل</button>
+</div>
+</header>
+<div class="wrap" id="wrap"></div>
+<script>
+var KEY='dawrat_final_multi_V10_CLEAN';
+var teachers=[];
+try{
+  var s=localStorage.getItem(KEY);
+  if(s){ teachers=JSON.parse(s); }
+}catch(e){ teachers=[]; }
+
+if(!teachers || teachers.length===0){
+  teachers=[];
+  for(var i=0;i<16;i++){
+    teachers.push({id:Date.now()+i,name:'',join:'',leave:'',place:'',note:'',courses:[{name:'',type:'',note:''}]});
+  }
+}
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(teachers));
+}
+
+function createInput(placeholder, value){
+  var inp=document.createElement('input');
+  inp.placeholder=placeholder||'';
+  inp.value=value||'';
+  return inp;
+}
+
+function render(){
+  var wrap=document.getElementById('wrap');
+  wrap.innerHTML='';
+
+  for(var tIdx=0; tIdx<teachers.length; tIdx++){
+    var t=teachers[tIdx];
+    var card=document.createElement('div');
+    card.className='card';
+
+    var head=document.createElement('div');
+    head.className='teacher-head';
+
+    var b0=document.createElement('div');
+    var badge=document.createElement('div');
+    badge.className='badge';
+    badge.textContent=tIdx+1;
+    b0.appendChild(badge);
+    head.appendChild(b0);
+
+    var d1=document.createElement('div');
+    var l1=document.createElement('div'); l1.className='lbl'; l1.textContent='اسم الاستاذ';
+    var i1=createInput('اسم الاستاذ', t.name);
+    (function(idx, field, input){ input.addEventListener('input', function(){ teachers[idx][field]=this.value; save(); }); })(tIdx,'name',i1);
+    (function(idx, field, input){ input.addEventListener('change', function(){ teachers[idx][field]=this.value; save(); }); })(tIdx,'name',i1);
+    d1.appendChild(l1); d1.appendChild(i1); head.appendChild(d1);
+     var d2=document.createElement('div');
+    var l2=document.createElement('div'); l2.className='lbl'; l2.textContent='تاريخ الالتحاق';
+    var i2=document.createElement('input'); i2.type='date'; i2.value=t.join||'';
+    (function(idx, input){ input.addEventListener('change', function(){ teachers[idx].join=this.value; save(); }); })(tIdx,i2);
+    d2.appendChild(l2); d2.appendChild(i2); head.appendChild(d2);
+
+    var d3=document.createElement('div');
+    var l3=document.createElement('div'); l3.className='lbl'; l3.textContent='تاريخ النزول';
+    var i3=document.createElement('input'); i3.type='date'; i3.value=t.leave||'';
+    (function(idx, input){ input.addEventListener('change', function(){ teachers[idx].leave=this.value; save(); }); })(tIdx,i3);
+    d3.appendChild(l3); d3.appendChild(i3); head.appendChild(d3);
+
+    var d4=document.createElement('div');
+    var l4=document.createElement('div'); l4.className='lbl'; l4.textContent='مكان الالتحاق';
+    var i4=createInput('المكان', t.place);
+    (function(idx, input){ input.addEventListener('input', function(){ teachers[idx].place=this.value; save(); }); })(tIdx,i4);
+    d4.appendChild(l4); d4.appendChild(i4); head.appendChild(d4);
+
+    var d5=document.createElement('div');
+    var pill=document.createElement('span'); pill.className='count-pill'; pill.textContent=t.courses.length+' دورة';
+    var delT=document.createElement('button'); delT.className='btn btn-red'; delT.style.marginRight='6px'; delT.style.padding='4px 8px'; delT.textContent='حذف';
+    (function(idx){ delT.addEventListener('click', function(){ if(confirm('تحذف الاستاذ؟')){ teachers.splice(idx,1); save(); render(); } }); })(tIdx);
+    d5.appendChild(pill); d5.appendChild(delT); head.appendChild(d5);
+
+    card.appendChild(head);
+
+    var coursesDiv=document.createElement('div');
+    coursesDiv.className='courses';
+
+    var titleRow=document.createElement('div');
+    titleRow.style.display='flex'; titleRow.style.justifyContent='space-between'; titleRow.style.alignItems='center'; titleRow.style.marginBottom='8px';
+    var title=document.createElement('div'); title.style.fontSize='12px'; title.style.fontWeight='800'; title.textContent='الدورات - اضغط + لاضافة دورة ثانية وثالثة لنفس الاستاذ';
+    var addCourseBtn=document.createElement('button'); addCourseBtn.className='btn btn-blue'; addCourseBtn.style.padding='4px 10px'; addCourseBtn.style.fontSize='11px'; addCourseBtn.textContent='+ اضافة دورة';
+    (function(idx){ addCourseBtn.addEventListener('click', function(){ teachers[idx].courses.push({name:'',type:'',note:''}); save(); render(); }); })(tIdx);
+    titleRow.appendChild(title); titleRow.appendChild(addCourseBtn);
+    coursesDiv.appendChild(titleRow);
+
+    for(var cIdx=0; cIdx<t.courses.length; cIdx++){
+      var c=t.courses[cIdx];
+      var row=document.createElement('div'); row.className='course-row';
+
+      var cd1=document.createElement('div');
+      var cl1=document.createElement('div'); cl1.className='lbl'; cl1.textContent='اسم الدورة '+(cIdx+1);
+      var ci1=createInput('مثال: صنف مشاة', c.name);
+      (function(ti, ci, inp){ inp.addEventListener('input', function(){ teachers[ti].courses[ci].name=this.value; save(); }); })(tIdx,cIdx,ci1);
+      cd1.appendChild(cl1); cd1.appendChild(ci1); row.appendChild(cd1);
+
+      var cd2=document.createElement('div');
+      var cl2=document.createElement('div'); cl2.className='lbl'; cl2.textContent='نوع الدورة';
+      var ci2=createInput('اساسية / تطويرية', c.type);
+      (function(ti, ci, inp){ inp.addEventListener('input', function(){ teachers[ti].courses[ci].type=this.value; save(); }); })(tIdx,cIdx,ci2);
+      cd2.appendChild(cl2); cd2.appendChild(ci2); row.appendChild(cd2);
+
+      var cd3=document.createElement('div');
+      var cl3=document.createElement('div'); cl3.className='lbl'; cl3.textContent='ملاحظة الدورة';
+       var ci3=createInput('ملاحظة', c.note);
+      (function(ti, ci, inp){ inp.addEventListener('input', function(){ teachers[ti].courses[ci].note=this.value; save(); }); })(tIdx,cIdx,ci3);
+      cd3.appendChild(cl3); cd3.appendChild(ci3); row.appendChild(cd3);
+
+      var cd4=document.createElement('div');
+      var delC=document.createElement('button'); delC.className='btn btn-red'; delC.style.padding='5px 8px'; delC.textContent='X';
+      (function(ti, ci){ delC.addEventListener('click', function(){ if(teachers[ti].courses.length<=1){ alert('لازم تبقي دورة وحدة'); return; } if(confirm('تحذف هذه الدورة؟')){ teachers[ti].courses.splice(ci,1); save(); render(); } }); })(tIdx,cIdx);
+      cd4.appendChild(delC); row.appendChild(cd4);
+
+      coursesDiv.appendChild(row);
+    }
+
+    var noteDiv=document.createElement('div'); noteDiv.style.marginTop='6px';
+    var nl=document.createElement('div'); nl.className='lbl'; nl.textContent='ملاحظات عامة للاستاذ';
+    var ni=createInput('ملاحظات عامة', t.note);
+    (function(idx, input){ input.addEventListener('input', function(){ teachers[idx].note=this.value; save(); }); })(tIdx,ni);
+    noteDiv.appendChild(nl); noteDiv.appendChild(ni);
+    coursesDiv.appendChild(noteDiv);
+
+    card.appendChild(coursesDiv);
+    wrap.appendChild(card);
+  }
+}
+
+document.getElementById('addTeacherBtn').addEventListener('click', function(){
+  teachers.push({id:Date.now(),name:'',join:'',leave:'',place:'',note:'',courses:[{name:'',type:'',note:''}]});
+  save(); render(); window.scrollTo(0,document.body.scrollHeight);
+});
+
+document.getElementById('clearBtn').addEventListener('click', function(){
+  if(confirm('مسح الكل وترجع 16؟')){
+    localStorage.removeItem(KEY);
+    teachers=[];
+    for(var i=0;i<16;i++){ teachers.push({id:Date.now()+i,name:'',join:'',leave:'',place:'',note:'',courses:[{name:'',type:'',note:''}] }); }
+    save(); render();
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', function(){
+  var csv='ت,اسم الاستاذ,تاريخ الالتحاق,تاريخ النزول,مكان الالتحاق,اسم الدورة,نوع الدورة,ملاحظة الدورة,ملاحظات عامة\n';
+  for(var ti=0; ti<teachers.length; ti++){
+    var tt=teachers[ti];
+    for(var ci=0; ci<tt.courses.length; ci++){
+      var cc=tt.courses[ci];
+      csv+=(ti+1)+',"'+(tt.name'')+'","'+(tt.join'')+'","'+(tt.leave'')+'","'+(tt.place'')+'","'+(cc.name'')+'","'+(cc.type'')+'","'+(cc.note'')+'","'+(tt.note'')+'"\n';
+    }
+  }
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='سجل-الدورات.csv'; a.click();
+});
+
+render();
+</script>
+</body>
+</html>
