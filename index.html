@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل الدورات - نهائي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:'Tajawal',system-ui}
+body{margin:0;background:#f1f5f9;color:#0f172a}
+header{background:#1e293b;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:20}
+h1{margin:0;font-size:15px;font-weight:800}
+.btn{border:none;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12px}
+.btn-green{background:#16a34a;color:#fff}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-red{background:#ef4444;color:#fff}
+.btn-blue{background:#0ea5e9;color:#fff}
+.wrap{max-width:1500px;margin:0 auto;padding:12px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:12px}
+.teacher-head{background:#f8fafc;padding:10px 12px;display:grid;grid-template-columns:50px 1.2fr 1fr 1fr 1fr 100px;gap:8px;align-items:center;border-bottom:1px solid #e2e8f0}
+.badge{background:#0f172a;color:#fff;width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+input{width:100%;padding:7px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px}
+input[type="date"]{direction:ltr;text-align:center}
+.courses{padding:10px}
+.course-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 40px;gap:6px;margin-bottom:6px;align-items:center;background:#fffbeb;border:1px dashed #f59e0b;border-radius:8px;padding:6px}
+.lbl{font-size:10px;color:#64748b;font-weight:700}
+.count-pill{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:800}
+</style>
+</head>
+<body>
+<header>
+<h1>🪖 سجل الدورات - 16 استاذ - كل استاذ متعدد الدورات</h1>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button class="btn btn-green" id="addTeacherBtn">+ اضافة استاذ</button>
+<button class="btn btn-dark" id="exportBtn">تصدير Excel</button>
+<button class="btn btn-red" id="clearBtn">مسح الكل</button>
+</div>
+</header>
+<div class="wrap" id="wrap"></div>
+<script>
+const KEY='dawrat_final_multi_V9';
+let teachers=[];
+try{let s=localStorage.getItem(KEY);if(s) teachers=JSON.parse(s);}catch(e){teachers=[];}
+if(!teachers||teachers.length===0){
+  teachers=[];
+  for(let i=0;i<16;i++){teachers.push({id:Date.now()+i,name:'',join:'',leave:'',place:'',note:'',courses:[{name:'',type:'',note:''}]});}
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(teachers));}
+function render(){
+  const wrap=document.getElementById('wrap');wrap.innerHTML='';
+  for(let tIdx=0;tIdx<teachers.length;tIdx++){
+    let t=teachers[tIdx];
+    let card=document.createElement('div');card.className='card';
+    let head=document.createElement('div');head.className='teacher-head';
+    head.innerHTML=<div><span class="badge">${tIdx+1}</span></div>
+      <div><div class="lbl">اسم الاستاذ</div><input data-t="${tIdx}" data-f="name" value="${t.name}" placeholder="اسم الاستاذ"></div>
+      <div><div class="lbl">تاريخ الالتحاق</div><input type="date" data-t="${tIdx}" data-f="join" value="${t.join}"></div>
+      <div><div class="lbl">تاريخ النزول</div><input type="date" data-t="${tIdx}" data-f="leave" value="${t.leave}"></div>
+      <div><div class="lbl">مكان الالتحاق</div><input data-t="${tIdx}" data-f="place" value="${t.place}" placeholder="المكان"></div>
+      <div style="display:flex;gap:4px;align-items:end"><span class="count-pill">${t.courses.length} دورة</span><button class="btn btn-red" style="padding:4px 8px" data-del-teacher="${tIdx}">✕</button></div>;
+    card.appendChild(head);
+ let coursesDiv=document.createElement('div');coursesDiv.className='courses';
+    let title=document.createElement('div');title.style.cssText='font-size:12px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between';
+    title.innerHTML=<span>📚 الدورات - اضغط + لاضافة دورة ثانية وثالثة لنفس الاستاذ</span><button class="btn btn-blue" data-add-course="${tIdx}" style="padding:3px 8px;font-size:10px">+ اضافة دورة</button>;
+    coursesDiv.appendChild(title);
+    for(let cIdx=0;cIdx<t.courses.length;cIdx++){
+      let c=t.courses[cIdx];
+      let row=document.createElement('div');row.className='course-row';
+      row.innerHTML=<div><div class="lbl">اسم الدورة ${cIdx+1}</div><input data-t="${tIdx}" data-c="${cIdx}" data-cf="name" value="${c.name}" placeholder="مثال: صنف مشاة"></div>
+        <div><div class="lbl">نوع الدورة</div><input data-t="${tIdx}" data-c="${cIdx}" data-cf="type" value="${c.type}" placeholder="اساسية / تطويرية"></div>
+        <div><div class="lbl">ملاحظة الدورة</div><input data-t="${tIdx}" data-c="${cIdx}" data-cf="note" value="${c.note||''}" placeholder="ملاحظة"></div>
+        <div><button class="btn btn-red" style="padding:4px 6px" data-del-course="${tIdx}-${cIdx}">✕</button></div>;
+      coursesDiv.appendChild(row);
+    }
+    let noteDiv=document.createElement('div');noteDiv.style.padding='0 10px 10px';
+    noteDiv.innerHTML=<div class="lbl">ملاحظات عامة للاستاذ</div><input data-t="${tIdx}" data-f="note" value="${t.note}" placeholder="ملاحظات عامة">;
+    coursesDiv.appendChild(noteDiv);card.appendChild(coursesDiv);wrap.appendChild(card);
+  }
+  wrap.querySelectorAll('input[data-f]').forEach(inp=>{inp.addEventListener('input',function(){teachers[parseInt(this.dataset.t)][this.dataset.f]=this.value;save();});inp.addEventListener('change',function(){teachers[parseInt(this.dataset.t)][this.dataset.f]=this.value;save();});});
+  wrap.querySelectorAll('input[data-cf]').forEach(inp=>{inp.addEventListener('input',function(){teachers[parseInt(this.dataset.t)].courses[parseInt(this.dataset.c)][this.dataset.cf]=this.value;save();});});
+  wrap.querySelectorAll('button[data-add-course]').forEach(btn=>{btn.addEventListener('click',function(){teachers[parseInt(this.dataset.addCourse)].courses.push({name:'',type:'',note:''});save();render();});});
+  wrap.querySelectorAll('button[data-del-course]').forEach(btn=>{btn.addEventListener('click',function(){let p=this.dataset.delCourse.split('-');let ti=parseInt(p[0]);let ci=parseInt(p[1]);if(teachers[ti].courses.length<=1){alert('لازم دورة وحدة');return;}if(confirm('تحذف الدورة؟')){teachers[ti].courses.splice(ci,1);save();render();}});});
+  wrap.querySelectorAll('button[data-del-teacher]').forEach(btn=>{btn.addEventListener('click',function(){if(confirm('تحذف الاستاذ؟')){teachers.splice(parseInt(this.dataset.delTeacher),1);save();render();}});});
+}
+document.getElementById('addTeacherBtn').addEventListener('click',function(){teachers.push({id:Date.now(),name:'',join:'',leave:'',place:'',note:'',courses:[{name:'',type:'',note:''}]});save();render();window.scrollTo(0,document.body.scrollHeight);});
+document.getElementById('clearBtn').addEventListener('click',function(){if(confirm('مسح الكل؟')){localStorage.removeItem(KEY);teachers=[];for(let i=0;i<16;i++){teachers.push({id:Date.now()+i,name:'',join:'',leave:'',place:'',note:'',courses:[{name:'',type:'',note:''}]});}save();render();}});
+document.getElementById('exportBtn').addEventListener('click',function(){let csv='ت,اسم الاستاذ,تاريخ الالتحاق,تاريخ النزول,مكان الالتحاق,اسم الدورة,نوع الدورة,ملاحظة الدورة,ملاحظات عامة\n';for(let ti=0;ti<teachers.length;ti++){let t=teachers[ti];for(let ci=0;ci<t.courses.length;ci++){let c=t.courses[ci];csv+=(ti+1)+',"'+t.name+'","'+t.join+'","'+t.leave+'","'+t.place+'","'+c.name+'","'+c.type+'","'+(c.note||'')+'","'+t.note+'"\n';}}let blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='سجل-الدورات.csv';a.click();});
+render();
+</script>
+</body>
+</html>
